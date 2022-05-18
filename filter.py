@@ -17,7 +17,22 @@ def get_coords(point, image):
 def draw(face, image):
   lip_mid = face[164]
   x, y = get_coords(lip_mid, image)
-  cv2.circle(image, (x,y), 10, (0,0,255), 2)
+  width, height = 200, 50
+
+  stash = cv2.imread('mustache.png', cv2.IMREAD_UNCHANGED)
+  stash = cv2.resize(stash, (width, height))
+
+  minY = int(y - height/2)
+  maxY = int(y + height/2)
+  minX = int(x - width/2)
+  maxX = int(x + width/2)
+
+  alpha = stash[:, :, 3] / 255.0
+  alpha_inv = 1 - alpha
+  for c in range(0, 3):
+    image[minY:maxY, minX:maxX, c] = (
+      alpha * stash[:,:,c] + alpha_inv * image[minY:maxY, minX:maxX, c])
+
 
 with mp_face_mesh.FaceMesh(
     max_num_faces=1,
