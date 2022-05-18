@@ -1,5 +1,6 @@
 import cv2
 import mediapipe as mp
+import pyvirtualcam
 
 cap = cv2.VideoCapture(2) # depends on input device, usually 0
 
@@ -40,23 +41,32 @@ def draw(face, image):
 with mp.solutions.face_mesh.FaceMesh(
     max_num_faces=1,
     refine_landmarks=True) as face_mesh:
-  while cap.isOpened():
-    success, image = cap.read()
-    if not success: break
 
-    image.flags.writeable = False
-    image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-    results = face_mesh.process(image)
+  _, frame1 = cap.read()
+  with pyvirtualcam.Camera(
+    width=frame1.shape[1], height=frame1.shape[0], fps=20) as cam:
 
-    image.flags.writeable = True
-    image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
-    if results.multi_face_landmarks:
-      for face_landmarks in results.multi_face_landmarks:
-        face = face_landmarks.landmark
-        draw(face, image)
+    while cap.isOpened():
+      success, image = cap.read()
+      if not success: break
 
-    cv2.imshow('Face', cv2.flip(image, 1)) # selfie flip
-    if cv2.waitKey(5) & 0xFF == 27:
-      break
+      image.flags.writeable = False
+      image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+      results = face_mesh.process(image)
+
+      image.flags.writeable = True
+      image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
+      if results.multi_face_landmarks:
+        for face_landmarks in results.multi_face_landmarks:
+          face = face_landmarks.landmark
+          draw(face, image)
+
+          image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
+          cam.send(image)
+          cam.sleep_until_next_frame()
+
+      cv2.imshow('Face', cv2.flip(image, 1)) # selfie flip
+      if cv2.waitKey(5) & 0xFF == 27:
+        break
 
 cap.release()
