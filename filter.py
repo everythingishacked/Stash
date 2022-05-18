@@ -9,6 +9,16 @@ drawing_spec = mp_drawing.DrawingSpec(thickness=1, circle_radius=1)
 
 cap = cv2.VideoCapture(2) # depends on input device, usually 0
 
+def get_coords(point, image):
+  x = int(image.shape[1] * point.x)
+  y = int(image.shape[0] * point.y)
+  return (x, y)
+
+def draw(face, image):
+  lip_mid = face[164]
+  x, y = get_coords(lip_mid, image)
+  cv2.circle(image, (x,y), 10, (0,0,255), 2)
+
 with mp_face_mesh.FaceMesh(
     max_num_faces=1,
     refine_landmarks=True) as face_mesh:
@@ -24,27 +34,8 @@ with mp_face_mesh.FaceMesh(
     image = cv2.cvtColor(image, cv2.COLOR_RGB2BGR)
     if results.multi_face_landmarks:
       for face_landmarks in results.multi_face_landmarks:
-        mp_drawing.draw_landmarks(
-            image=image,
-            landmark_list=face_landmarks,
-            connections=mp_face_mesh.FACEMESH_TESSELATION,
-            landmark_drawing_spec=None,
-            connection_drawing_spec=mp_drawing_styles
-            .get_default_face_mesh_tesselation_style())
-        mp_drawing.draw_landmarks(
-            image=image,
-            landmark_list=face_landmarks,
-            connections=mp_face_mesh.FACEMESH_CONTOURS,
-            landmark_drawing_spec=None,
-            connection_drawing_spec=mp_drawing_styles
-            .get_default_face_mesh_contours_style())
-        mp_drawing.draw_landmarks(
-            image=image,
-            landmark_list=face_landmarks,
-            connections=mp_face_mesh.FACEMESH_IRISES,
-            landmark_drawing_spec=None,
-            connection_drawing_spec=mp_drawing_styles
-            .get_default_face_mesh_iris_connections_style())
+        face = face_landmarks.landmark
+        draw(face, image)
 
     cv2.imshow('Face', cv2.flip(image, 1)) # selfie flip
     if cv2.waitKey(5) & 0xFF == 27:
