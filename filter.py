@@ -24,9 +24,9 @@ def draw(face, image):
   lip_upper = face[2]
   lip_lower = face[0]
 
-  x_mid, y_mid = get_coords(lip_mid, image)
-  x_left, y_left = get_coords(lip_left, image)
-  x_right, y_right = get_coords(lip_right, image)
+  x_mid, _ = get_coords(lip_mid, image)
+  x_left, _ = get_coords(lip_left, image)
+  x_right, _ = get_coords(lip_right, image)
 
   _, y_upper = get_coords(lip_upper, image)
   _, y_lower = get_coords(lip_lower, image)
